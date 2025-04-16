@@ -788,7 +788,7 @@
 
         
         // Отправка данных на сервер
-        await sendDataToServer(userData, pdfBlob));
+        await sendDataToServer(userData, pdfBlob);
       } catch (error) {
         console.error('Ошибка при генерации PDF:', error);
         //alert('Произошла ошибка при создании отчета. Пожалуйста, попробуйте еще раз.');
