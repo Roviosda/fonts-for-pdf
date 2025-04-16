@@ -838,24 +838,38 @@
       doc.text(splitRec, x, y);
     }
     // Обновленная функция отправки данных
-    async function sendDataToServer(userData) {
-      try {
-        const response = await fetch('http://212.67.11.10:3000/api/submit', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...userData,
-            testResults: scores
-          })
-        });
-        const result = await response.json();
-        console.log('Данные успешно отправлены на сервер:', result);
-      } catch (error) {
-        console.error('Ошибка при отправке данных на сервер:', error);
-      }
+async function sendDataToServer(userData) {
+  try {
+    // Создаем FormData для отправки
+    const formData = new FormData();
+    formData.append('firstName', userData.firstName);
+    formData.append('lastName', userData.lastName);
+    formData.append('email', userData.email);
+    formData.append('phone', userData.phone || '');
+    formData.append('testResults', JSON.stringify(scores));
+    
+    //Отправить PDF:
+    const pdfBlob = await doc.output('blob');
+    formData.append('pdfFile', pdfBlob, 'report.pdf');
+
+    const response = await fetch('http://212.67.11.10:3000/api/submit', {
+      method: 'POST',
+      body: formData
+      // Заголовки не нужны, FormData устанавливает их автоматически
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const result = await response.json();
+    console.log('Данные успешно отправлены на сервер:', result);
+    return result;
+  } catch (error) {
+    console.error('Ошибка при отправке данных на сервер:', error);
+    throw error;
+  }
+}
     // Открыть модальное окно
     function openModal(modal) {
       modal.style.display = 'flex';
