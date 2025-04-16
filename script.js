@@ -778,7 +778,7 @@
         // Сохранение PDF
         doc.save(`Результаты теста жизнестойкости - ${userData.firstName} ${userData.lastName}.pdf`);
         // Отправка данных на сервер
-        await sendDataToServer(userData);
+        await sendDataToServer(userData, doc);
       } catch (error) {
         console.error('Ошибка при генерации PDF:', error);
         alert('Произошла ошибка при создании отчета. Пожалуйста, попробуйте еще раз.');
@@ -838,8 +838,14 @@
       doc.text(splitRec, x, y);
     }
     // Обновленная функция отправки данных
-async function sendDataToServer(userData) {
+async function sendDataToServer(userData, doc) {
   try {
+      
+//Получаем уже сгенерированный PDF из doc объекта
+const pdfBlob = await new Promise(resolve => {
+      doc.output('blob', blob => resolve(blob));
+    });
+      
     // Создаем FormData для отправки
     const formData = new FormData();
     formData.append('firstName', userData.firstName);
@@ -847,27 +853,20 @@ async function sendDataToServer(userData) {
     formData.append('email', userData.email);
     formData.append('phone', userData.phone || '');
     formData.append('testResults', JSON.stringify(scores));
+    formData.append('pdfFile', pdfBlob, `${userData.firstName}_${userData.lastName}_report.pdf`);
     
-    //Отправить PDF:
-    const pdfBlob = await doc.output('blob');
-    formData.append('pdfFile', pdfBlob, 'report.pdf');
 
-    const response = await fetch('http://212.67.11.10:3000/api/submit', {
+      const response = await fetch('http://212.67.11.10:3000/api/submit', {
       method: 'POST',
       body: formData
-      // Заголовки не нужны, FormData устанавливает их автоматически
+      // Content-Type установится автоматически как multipart/form-data
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
 
     const result = await response.json();
-    console.log('Данные успешно отправлены на сервер:', result);
-    return result;
+    console.log('Данные и PDF успешно отправлены:', result);
   } catch (error) {
-    console.error('Ошибка при отправке данных на сервер:', error);
-    throw error;
+    console.error('Ошибка отправки:', error);
   }
 }
     // Открыть модальное окно
