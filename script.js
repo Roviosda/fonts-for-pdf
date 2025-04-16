@@ -840,7 +840,7 @@
     // Обновленная функция отправки данных
     async function sendDataToServer(userData) {
       try {
-        const response = await fetch('http://5.35.91.104:3000/api/submit', {
+        const response = await fetch('http://212.67.11.10:3000/api/submit', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
